@@ -1,5 +1,5 @@
-# React + Bootstrap consuming coins from websocket <br />
-## on wss://api2.poloniex.com
+# React + Bootstrap consuming coins from websocket
+on wss://api2.poloniex.com
 
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
