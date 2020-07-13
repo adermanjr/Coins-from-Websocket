@@ -1,0 +1,63 @@
+import React, {Component, useState, useEffect} from 'react';
+import Cryptos from './components/cryptos';
+import UpdateCryptos from './components/updateCryptos';
+import Contacts from './components/contacts';
+
+export default function App() {
+
+  const [cryptos, setCryptos] = useState(null);
+  const [contacts, setContacts] = useState(null);
+  const [cotationRealTime, setCotationRealTime] = useState(null);
+  const [uriUser, setUriUser] = useState('http://jsonplaceholder.typicode.com/users');
+  const [uriCrypto, setUriCrypto] = useState('https://poloniex.com/public?command=returnTicker');
+  const [uriWebsocket, setUriWebsocket] = useState('wss://api2.poloniex.com');
+
+  fetch(uriCrypto)
+  .then(res => res.json())
+  .then((data) => {
+    const coins = Object.entries(data).map(([key, value]) => {
+      return { moeda: key, dados: value };
+    });
+    setCryptos(coins)
+  })
+  .catch(console.log);
+
+  useEffect(() => {
+    var socket = new WebSocket(uriWebsocket)
+    socket.onopen = function(event) {
+      console.log('WebSocket is connected.', event.data);
+      var obj = JSON.stringify({'command': "subscribe", "channel": 1003})
+      console.log(obj)
+      console.log('onopen');
+      socket.send(obj)
+    }
+
+    socket.onmessage = function(event) {
+      var res = event.data
+      
+      if(res !== "[1010]"){
+        const dataRes = JSON.parse(res);
+        if (dataRes[2] != null) {
+          const ret = 
+            { 'canal': dataRes[0],
+              'data': dataRes[2][0],
+              'coins': dataRes[2][2],
+            };
+          console.log(ret);
+          setCotationRealTime(ret);
+        }
+        console.log('onmessage');
+      }
+    }
+  });
+
+  
+  if (!cotationRealTime) {
+    return null;
+  }
+  
+  return (
+    <UpdateCryptos updateCryptos={cotationRealTime} />
+  );
+
+}

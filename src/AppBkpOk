@@ -1,0 +1,43 @@
+import React, {useState, useEffect} from 'react';
+import UpdateCryptos from './components/updateCryptos';
+
+
+export default function App() {
+
+  const [cotationRealTime, setCotationRealTime] = useState(null);
+  let uriSocket ='wss://api2.poloniex.com';
+
+  var socket = new WebSocket(uriSocket)
+  socket.onopen = function(event) {
+    console.log('WebSocket is connected.', event.data);
+    var obj = JSON.stringify({'command': "subscribe", "channel": 1003})
+    console.log(obj)
+    console.log('onopen');
+    socket.send(obj)
+  }
+
+  useEffect(() => {
+    socket.onmessage = function(event) {
+      var res = event.data
+      
+      if(res !== "[1010]"){
+        const dataRes = JSON.parse(res);
+        if (dataRes[2] != null) {
+          const ret = 
+            { 'canal': dataRes[0],
+              'data': dataRes[2][0],
+              'coins': dataRes[2][2],
+            };
+          console.log(ret);
+          setCotationRealTime(ret);
+        }
+        console.log('onmessage');
+      }
+    }
+  })
+  
+  return (
+    <UpdateCryptos updateCryptos={cotationRealTime} />
+  );
+
+}
